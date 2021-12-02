@@ -16,11 +16,11 @@ def eulerStep(angles,speeds,dt):
 
     return new_angles
 
-def odometery(q_k, u):
+def odometery(q_k, d_theta):
     """
     Inputs:
     - q_k: current chassis state (phi,x,y)
-    - u: four wheel speeds
+    - d_theta: change in wheel angles
     Output:
     - q_k1: new chassis state (phi,x,y)
     """
@@ -36,7 +36,7 @@ def odometery(q_k, u):
     F = np.linalg.pinv(H)
 
     # Vb = H_inv * u
-    Vb = F @ u
+    Vb = F @ d_theta
     omega_bz = Vb[0]
     v_bx = Vb[1]
     v_by = Vb[2]
@@ -84,7 +84,7 @@ def nextState(current, controls, dt, max_speed):
             controls[i] = max_speed
 
     # Use odometry for new chassis configuration
-    new_state[0:3] = odometery(current[0:3], controls[5:9])
+    new_state[0:3] = odometery(current[0:3], dt*controls[5:9])
     # Use euler step for new joint and wheel angles
     new_state[3:12] = eulerStep(angles,controls,dt)
     
@@ -109,7 +109,7 @@ def main():
 
     # Test nextState function
     config = np.zeros(12)
-    controls = np.array([0.5,0.5,0.5,0.5,0.5,-10,10,10,-10])
+    controls = np.array([0.5,0.5,0.5,0.5,0.5,10,10,10,10])
     dt = 0.01 # seconds
     max_speed = 10 # rad/s
 
