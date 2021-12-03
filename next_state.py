@@ -60,10 +60,10 @@ def odometery(q_k, d_theta):
 def nextState(current, controls, dt, max_speed):
     """
     Inputs:
-    - current: 12-vector representing the current configuration of the robot (3 variables for the chassis configuration, 5 variables for the arm configuration, and 4 variables for the wheel angles)
-    - controls: 9-vector of controls indicating the arm joint speeds theta_dot (5 variables) and the wheel speeds u (4 variables)
+    - current: 12-vector for current robot configuration (phi,x,y for chassis, 5 joint angles, and 4 wheel angles)
+    - controls: 9-vector of controls indicating the 5 joint speeds theta_dot and the 4 wheel speeds u
     - dt: timestep Δt
-    - max_speed: positive real value indicating the maximum angular speed of the arm joints and the wheels. Example: if this value is 12.3, the angular speed of the wheels and arm joints is limited to [-12.3 rad/s, 12.3 rad/s]
+    - max_speed: limits the maximum angular speed of arm joints and wheels to [-max_speed rad/s, max_speed rad/s]
     Output:
     - config: 12-vector representing the configuration of the robot time Δt later
     """
@@ -72,9 +72,6 @@ def nextState(current, controls, dt, max_speed):
     # Extract values from current configuration
     phi,x,y = current[0:3]
     angles = current[3:12]
-
-    # Transformation matrix from space frame to chassis frame
-    T_sb = np.array([[np.cos(phi),-np.sin(phi),0,x],[np.sin(phi),np.cos(phi),0,y],[0,0,1,0.0963],[0,0,0,1]])
 
     # Limit joint and wheel speeds
     for i in range(len(controls)):
@@ -91,22 +88,6 @@ def nextState(current, controls, dt, max_speed):
     return new_state
 
 def main():
-    # Chassis frame to base frame of arm 0
-    T_b0 = np.array([[1,0,0,0.1662],[0,1,0,0],[0,0,1,0.0026],[0,0,0,1]])
-    # End effector frame relative to base frame, when all joint angles are zero
-    M_0e = np.array([[1,0,0,0.033],[0,1,0,0],[0,0,1,0.6546],[0,0,0,1]])
-
-    # Screw axes when arm is at home configuration
-    Blist1 = np.array([0,0,1,0,0.033,0])
-    Blist2 = np.array([0,-1,0,-0.5076,0,0])
-    Blist3 = np.array([0,-1,0,-0.3526,0,0])
-    Blist4 = np.array([0,-1,0,-0.2176,0,0])
-    Blist5 = np.array([0,0,1,0,0,0])
-
-    # Initial and goal configurations of the cube
-    Tsc_ini = np.array([[1,0,0,1],[0,1,0,0],[0,0,1,0.025],[0,0,0,1]])
-    Tsc_goal = np.array([[0,1,0,0],[-1,0,0,-1],[0,0,1,0.025],[0,0,0,1]])
-
     # Test nextState function
     config = np.zeros(12)
     controls = np.array([0.5,0.5,0.5,0.5,0.5,10,10,10,10])
