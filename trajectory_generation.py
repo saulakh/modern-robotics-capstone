@@ -87,7 +87,7 @@ def motion_planning(robot_initial, cube_initial, cube_final):
     - Appends full trajectory to csv file, moving the cube from inital to goal position
     """
     # Open csv file
-    f = open('./trajectory.csv', 'w', newline='')
+    f = open('./results/trajectory.csv', 'w', newline='')
     writer = csv.writer(f)
 
     # 1) Move gripper to standoff configuration over initial cube location

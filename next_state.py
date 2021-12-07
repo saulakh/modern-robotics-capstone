@@ -95,7 +95,7 @@ def main():
     max_speed = 10 # rad/s
 
     # Open csv file
-    f = open('./path.csv', 'w', newline='')
+    f = open('./results/path.csv', 'w', newline='')
     writer = csv.writer(f)
     writer.writerow(config)
 
