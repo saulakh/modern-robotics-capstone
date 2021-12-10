@@ -21,10 +21,13 @@ def Jacobian(T0e, F, Blist, thetalist):
     J_base = Adj_Teb @ F6
     J_arm = mr.JacobianBody(Blist,thetalist)
     J_e = np.concatenate((J_base, J_arm), axis=1)
-    print("\nFull jacobian:\n", np.around(J_e,3))
+    #print("\nFull jacobian:\n", np.around(J_e,3))
     # Switch to using J_arm then J_base, to match order of controls and config
     J = np.concatenate((J_arm, J_base), axis=1)
-    return J_e
+    return J
+
+def testJointLimit():
+    pass
 
 def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     """
@@ -34,6 +37,8 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     - Xd_next: reference configuration at next timestep in ref trajectory
     - Kp, Ki: PI gain matrices
     - dt: timestep between ref trajectory configurations
+    - currentConfig: (phi,x,y,J1,J2,J3,J4,J5,W1,W2,W3,W4)
+    - errorIntegral: sum of all error twists over time
     Outputs:
     - V: commanded end-effector twist, expressed in end-effector frame
     """
@@ -46,7 +51,7 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
 
     M0e = np.array([[1,0,0,0.033],[0,1,0,0],[0,0,1,0.6546],[0,0,0,1]])
     Blist = np.array([[0,0,1,0,0.033,0],[0,-1,0,-0.5076,0,0],[0,-1,0,-0.3526,0,0],[0,-1,0,-0.2176,0,0],[0,0,1,0,0,0]]).T
-    thetalist = currentConfig[3:].T
+    thetalist = currentConfig[3:8].T
     # Get end-effector configuration relative to base frame (for test input angles)
     T0e = mr.FKinBody(M0e, Blist, thetalist)
     J_e = Jacobian(T0e, F, Blist, thetalist)
@@ -68,9 +73,13 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     V = Adj_Vd + Kp @ X_err + Ki @ errorIntegral
     print("\nV:", V)
     # Note: these controls are (u, thetadot), but nextState uses (thetadot, u)
+    #controls = np.linalg.pinv(J_e) @ V
+    #print("\nControls:", np.around(controls,3))
+
+    # After flipping the Jacobian to [J_arm J_base]:
     controls = np.linalg.pinv(J_e) @ V
     print("\nControls:", np.around(controls,3))
-    pass
+    return controls, errorIntegral
 
 def main():
     # Test input (phi,x,y,J1,J2,J3,J4,J5)
