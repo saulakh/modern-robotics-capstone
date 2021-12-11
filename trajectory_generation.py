@@ -30,7 +30,7 @@ def grasp_position(cube_config, theta):
     """
     Returns end-effector grasp configuration, rotated about y-axis from cube position
     """
-    grasp = np.copy(cube_config)
+    grasp = np.identity(4)
     # Rotate theta (in radians) about y-axis in space frame
     rot_y = np.array([[np.cos(theta),0,np.sin(theta)],[0,1,0],[-np.sin(theta),0,np.cos(theta)]])
     # Change end-effector orientation
@@ -38,20 +38,20 @@ def grasp_position(cube_config, theta):
     # Lower center of gripper to center height of cube
     grasp[2,3] -= 0.0215
 
-    return np.around(grasp, 3)
+    return np.around(cube_config @ grasp, 3)
 
 def standoff_position(cube_config, theta, dist):
     """
     Returns the end-effector standoff configuration, relative to cube position
     """
-    standoff = np.copy(cube_config)
+    standoff = np.identity(4)
     rot_y = np.array([[np.cos(theta),0,np.sin(theta)],[0,1,0],[-np.sin(theta),0,np.cos(theta)]])
     # Change end-effector orientation
     standoff[:3,:3] = rot_y
     # Standoff at desired distance above cube (in meters)
     standoff[2,3] += dist
 
-    return np.around(standoff,3)
+    return np.around(cube_config @ standoff,3)
 
 def chassis_to_endeffector(T_sb):
     """

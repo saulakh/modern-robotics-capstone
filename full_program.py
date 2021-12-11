@@ -31,6 +31,16 @@ def trajToSE3(traj):
 
     return SE3
 
+def errorPlot():
+    import matplotlib.pyplot as plt
+    error_csv = np.loadtxt('./results/error.csv',delimiter=',')
+
+    plt.plot(error_csv)
+    plt.title('Error Plot')
+    plt.savefig('./results/error_plot.png')
+    plt.show()
+    pass
+
 def main():
     """
     This function returns the full path of the youBot, with these helper functions:
@@ -82,6 +92,7 @@ def main():
 
     f.close()
     f2.close()
+    errorPlot()
     pass
 
 if __name__ == "__main__":

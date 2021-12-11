@@ -20,8 +20,6 @@ def Jacobian(T0e, F, Blist, thetalist):
     # Get full Jacobian matrix
     J_base = Adj_Teb @ F6
     J_arm = mr.JacobianBody(Blist,thetalist)
-    J_e = np.concatenate((J_base, J_arm), axis=1)
-    #print("\nFull jacobian:\n", np.around(J_e,3))
     # Switch to using J_arm then J_base, to match order of controls and config
     J = np.concatenate((J_arm, J_base), axis=1)
     return J
@@ -81,9 +79,6 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     # Get commanded end-effector twist V
     V = Adj_Vd + Kp @ X_err + Ki @ errorIntegral
     print("\nV:", V)
-    # Note: these controls are (u, thetadot), but nextState uses (thetadot, u)
-    #controls = np.linalg.pinv(J_e) @ V
-    #print("\nControls:", np.around(controls,3))
 
     # After flipping the Jacobian to [J_arm J_base]:
     controls = pinv_tol(J_e, 0.001) @ V
