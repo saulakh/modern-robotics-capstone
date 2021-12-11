@@ -26,8 +26,17 @@ def Jacobian(T0e, F, Blist, thetalist):
     J = np.concatenate((J_arm, J_base), axis=1)
     return J
 
-def testJointLimit():
+def testJointLimits():
+    """
+    Tests if any joint angles would exceed joint limits at the configuration one timestep later. 
+    If so, change columns of J_e to zero for any joint angles that exceed limits, and recalculate controls
+    """
     pass
+
+def pinv_tol(matrix, tol):
+    matrix[np.where(np.abs(matrix) < tol)] = 0
+    matrix_inv = np.linalg.pinv(matrix)
+    return matrix_inv
 
 def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     """
@@ -62,7 +71,7 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     X_err = mr.se3ToVec(mr.MatrixLog6(X_inv @ Xd))
     print("\nError twist:", np.around(X_err,3))
     # Error integral is sum of all X_err*dt over time
-    errorIntegral = sum(errorIntegral, X_err * dt)
+    errorIntegral = X_err * dt #sum(errorIntegral, X_err * dt) # this is going to infinity, fix this before adding Ki
     # Feedforward reference twist
     Vd = mr.se3ToVec((1/dt) * mr.MatrixLog6(Xd_inv @ Xd_next))
     print("\nVd:", Vd)
@@ -77,7 +86,7 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     #print("\nControls:", np.around(controls,3))
 
     # After flipping the Jacobian to [J_arm J_base]:
-    controls = np.linalg.pinv(J_e) @ V
+    controls = pinv_tol(J_e, 0.001) @ V
     print("\nControls:", np.around(controls,3))
     return controls, errorIntegral
 

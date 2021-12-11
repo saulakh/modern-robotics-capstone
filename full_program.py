@@ -70,14 +70,15 @@ def main():
         controls, errorIntegral = feedbackControl(X, Xd, Xd_next, robot.Kp, robot.Ki, robot.dt, robot.current_config, robot.errorIntegral)
         robot.controls = controls
         robot.errorIntegral = errorIntegral
+        grip = traj[i,12]
 
         # Get next configuration and add to csv file
-        robot.current_config = np.append((nextState(robot.current_config, robot.controls, robot.dt, robot.max_speed)), 0)
+        robot.current_config = np.append((nextState(robot.current_config, robot.controls, robot.dt, robot.max_speed)), int(grip))
         writer.writerow(np.around(robot.current_config, 8))
         writer2.writerow(np.around(robot.errorIntegral, 8))
 
-        # Set Xd as X
-        robot.X = trajToSE3(traj[i])
+        # Set next configuration as X for next iteration
+        robot.X = endEffectorConfig(robot.current_config, robot.M0e, robot.Tb0, robot.Blist)
 
     f.close()
     f2.close()
