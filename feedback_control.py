@@ -69,7 +69,7 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     X_err = mr.se3ToVec(mr.MatrixLog6(X_inv @ Xd))
     print("\nError twist:", np.around(X_err,3))
     # Error integral is sum of all X_err*dt over time
-    errorIntegral = X_err * dt #sum(errorIntegral, X_err * dt) # this is going to infinity, fix this before adding Ki
+    errorIntegral = errorIntegral + X_err * dt
     # Feedforward reference twist
     Vd = mr.se3ToVec((1/dt) * mr.MatrixLog6(Xd_inv @ Xd_next))
     print("\nVd:", Vd)

@@ -3,8 +3,8 @@ import numpy as np
 class youBot():
     def __init__(self):
         self.dt = 0.01 # seconds
-        self.max_speed = 10 # rad/s
-        self.errorIntegral = np.zeros((1,6))
+        self.max_speed = 15 # rad/s
+        self.errorIntegral = np.zeros(6)
 
         # Chassis dimensions (meters)
         self.r = 0.0475 # wheel radius
@@ -20,15 +20,17 @@ class youBot():
 
         # Starting configuration and controls
         self.current_config = self.initial_config
-        self.controls = np.zeros((1,13))
+        self.controls = np.zeros(13)
 
         # Initial and goal configurations of the cube
         self.cube_initial = np.array([[1,0,0,1],[0,1,0,0],[0,0,1,0.025],[0,0,0,1]])
         self.cube_final = np.array([[0,1,0,0],[-1,0,0,-1],[0,0,1,0.025],[0,0,0,1]])
 
         # Kp and Ki gains
-        self.Kp = np.identity(6)
-        self.Ki = np.zeros(6)
+        self.Kp_gain = 1
+        self.Ki_gain = 0
+        self.Kp = self.Kp_gain * np.identity(6)
+        self.Ki = self.Ki_gain * np.identity(6)
 
         # Initial X, Xd, Xd_next:
         self.X = np.array([[0.17,0,0.985,0.387],[0,1,0,0],[-0.985,0,0.17,0.57],[0,0,0,1]])

@@ -31,12 +31,12 @@ def trajToSE3(traj):
 
     return SE3
 
-def errorPlot():
+def errorPlot(Kp, Ki):
     import matplotlib.pyplot as plt
     error_csv = np.loadtxt('./results/error.csv',delimiter=',')
 
     plt.plot(error_csv)
-    plt.title('Error Plot')
+    plt.title(f'Error Plot, Kp={Kp}, Ki={Ki}')
     plt.savefig('./results/error_plot.png')
     plt.show()
     pass
@@ -84,15 +84,15 @@ def main():
 
         # Get next configuration and add to csv file
         robot.current_config = np.append((nextState(robot.current_config, robot.controls, robot.dt, robot.max_speed)), int(grip))
-        writer.writerow(np.around(robot.current_config, 8))
-        writer2.writerow(np.around(robot.errorIntegral, 8))
+        writer.writerow(robot.current_config)
+        writer2.writerow(robot.errorIntegral)
 
         # Set next configuration as X for next iteration
         robot.X = endEffectorConfig(robot.current_config, robot.M0e, robot.Tb0, robot.Blist)
 
     f.close()
     f2.close()
-    errorPlot()
+    errorPlot(robot.Kp_gain, robot.Ki_gain)
     pass
 
 if __name__ == "__main__":
