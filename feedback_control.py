@@ -1,5 +1,6 @@
 import modern_robotics as mr
 import numpy as np
+from next_state import nextState
 
 def Jacobian(T0e, F, Blist, thetalist):
     """
@@ -24,12 +25,29 @@ def Jacobian(T0e, F, Blist, thetalist):
     J = np.concatenate((J_arm, J_base), axis=1)
     return J
 
-def testJointLimits():
+def testJointLimits(config):
     """
-    Tests if any joint angles would exceed joint limits at the configuration one timestep later. 
-    If so, change columns of J_e to zero for any joint angles that exceed limits, and recalculate controls
+    Returns a list of joint angles that exceed joint limits
     """
-    pass
+    theta1, theta2, theta3, theta4, theta5 = config[3:8]
+    constrainJoints = []
+
+    if theta1 < -np.pi/3:
+        constrainJoints.append(1)
+    if theta1 > np.pi/3:
+        constrainJoints.append(1)
+
+    if theta3 < -2:
+        constrainJoints.append(3)
+    if theta3 > 2:
+        constrainJoints.append(3)
+
+    if theta4 < -2:
+        constrainJoints.append(4)
+    if theta4 > 2:
+        constrainJoints.append(4)
+
+    return constrainJoints
 
 def pinv_tol(matrix, tol):
     matrix[np.where(np.abs(matrix) < tol)] = 0
@@ -81,8 +99,18 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     print("\nV:", V)
 
     # After flipping the Jacobian to [J_arm J_base]:
-    controls = pinv_tol(J_e, 0.001) @ V
+    tol = 0.001
+    controls = pinv_tol(J_e, tol) @ V
     print("\nControls:", np.around(controls,3))
+
+    # Test joint limits, and recalculate controls if needed
+    nextConfig = nextState(currentConfig, controls, dt, 15)
+    constrain = testJointLimits(nextConfig)
+    if constrain != []:
+        for joint in constrain:
+            J_e[:,joint-1] = 0
+        controls = pinv_tol(J_e, tol) @ V
+
     return controls, errorIntegral
 
 def main():
