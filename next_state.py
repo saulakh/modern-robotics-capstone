@@ -35,8 +35,8 @@ def odometery(q_k, d_theta):
     # F is pseudo inverse of H(0)
     F = np.linalg.pinv(H)
 
-    # Vb = H_inv * u
-    Vb = F @ d_theta
+    # Body twist
+    Vb = F @ d_theta.T
     omega_bz = Vb[0]
     v_bx = Vb[1]
     v_by = Vb[2]

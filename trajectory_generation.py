@@ -38,7 +38,7 @@ def grasp_position(cube_config, theta):
     # Lower center of gripper to center height of cube
     grasp[2,3] -= 0.0215
 
-    return np.around(cube_config @ grasp, 3)
+    return cube_config @ grasp
 
 def standoff_position(cube_config, theta, dist):
     """
@@ -51,7 +51,7 @@ def standoff_position(cube_config, theta, dist):
     # Standoff at desired distance above cube (in meters)
     standoff[2,3] += dist
 
-    return np.around(cube_config @ standoff,3)
+    return cube_config @ standoff
 
 def chassis_to_endeffector(T_sb):
     """
@@ -91,12 +91,12 @@ def motion_planning(robot_initial, cube_initial, cube_final):
     writer = csv.writer(f)
 
     # 1) Move gripper to standoff configuration over initial cube location
-    standoff1 = standoff_position(cube_initial, np.pi, 0.05)
-    grip, Tf = 0, 3
+    standoff1 = standoff_position(cube_initial, 3*np.pi/4, 0.075)
+    grip, Tf = 0, 5
     trajectory(robot_initial, standoff1, grip, Tf, writer)
 
     # 2) Move gripper down to grasp position
-    grasp1 = grasp_position(cube_initial, np.pi)
+    grasp1 = grasp_position(cube_initial, 3*np.pi/4)
     trajectory(standoff1, grasp1, grip, 1, writer)
 
     # 3) Close gripper
@@ -107,11 +107,11 @@ def motion_planning(robot_initial, cube_initial, cube_final):
     trajectory(grasp1, standoff1, grip, 1, writer)
 
     # 5) Move gripper to standoff configuration over goal cube location
-    standoff2 = standoff_position(cube_final, np.pi, 0.05)
-    trajectory(standoff1, standoff2, grip, 3, writer)
+    standoff2 = standoff_position(cube_final, 3*np.pi/4, 0.075)
+    trajectory(standoff1, standoff2, grip, Tf, writer)
 
     # 6) Move gripper to final configuration of the cube
-    grasp2 = grasp_position(cube_final, np.pi)
+    grasp2 = grasp_position(cube_final, 3*np.pi/4)
     trajectory(standoff2, grasp2, grip, 1, writer)
 
     # 7) Open gripper

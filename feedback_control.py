@@ -32,19 +32,10 @@ def testJointLimits(config):
     theta1, theta2, theta3, theta4, theta5 = config[3:8]
     constrainJoints = []
 
-    if theta1 < -np.pi/3:
-        constrainJoints.append(1)
-    if theta1 > np.pi/3:
-        constrainJoints.append(1)
-
-    if theta3 < -2:
-        constrainJoints.append(3)
-    if theta3 > 2:
+    if theta3 < -2 or theta3 > 2:
         constrainJoints.append(3)
 
-    if theta4 < -2:
-        constrainJoints.append(4)
-    if theta4 > 2:
+    if theta4 < -2 or theta4 > 2:
         constrainJoints.append(4)
 
     return constrainJoints
@@ -54,7 +45,7 @@ def pinv_tol(matrix, tol):
     matrix_inv = np.linalg.pinv(matrix)
     return matrix_inv
 
-def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
+def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral, writer):
     """
     Inputs:
     - X: current actual end-effector configuration (Tse)
@@ -85,23 +76,19 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral):
     Xd_inv = np.linalg.inv(Xd)
     # Error twist between current and desired state
     X_err = mr.se3ToVec(mr.MatrixLog6(X_inv @ Xd))
-    print("\nError twist:", np.around(X_err,3))
+    writer.writerow(X_err)
     # Error integral is sum of all X_err*dt over time
     errorIntegral = errorIntegral + X_err * dt
     # Feedforward reference twist
     Vd = mr.se3ToVec((1/dt) * mr.MatrixLog6(Xd_inv @ Xd_next))
-    print("\nVd:", Vd)
     Adj_Vd = mr.Adjoint(X_inv @ Xd) @ Vd
-    print("\nAdj_Vd:", Adj_Vd)
 
     # Get commanded end-effector twist V
     V = Adj_Vd + Kp @ X_err + Ki @ errorIntegral
-    print("\nV:", V)
 
     # After flipping the Jacobian to [J_arm J_base]:
-    tol = 0.001
+    tol = 0.002
     controls = pinv_tol(J_e, tol) @ V
-    print("\nControls:", np.around(controls,3))
 
     # Test joint limits, and recalculate controls if needed
     nextConfig = nextState(currentConfig, controls, dt, 15)

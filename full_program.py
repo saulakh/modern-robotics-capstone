@@ -37,8 +37,8 @@ def errorPlot(Kp, Ki):
 
     plt.plot(error_csv)
     plt.title(f'Error Plot, Kp={Kp}, Ki={Ki}')
-    plt.savefig('./results/error_plot.png')
-    plt.show()
+    plt.savefig('./results/' + f'Kp={Kp}, Ki={Ki}.png')
+    print("Saved error plot.")
     pass
 
 def main():
@@ -57,6 +57,7 @@ def main():
 
     # Trajectory with SE(3) configurations
     trajectory_generation.motion_planning(X_initial, robot.cube_initial, robot.cube_final)
+    print("Generated trajectory.")
 
     # Write to csv file (phi,x,y,J1,J2,J3,J4,J5,W1,W2,W3,W4,gripper)
     f = open('./results/youBot.csv', 'w', newline='')
@@ -66,7 +67,6 @@ def main():
     # Start second writer for error twists
     f2 = open('./results/error.csv', 'w', newline='')
     writer2 = csv.writer(f2)
-    writer2.writerow(robot.errorIntegral)
 
     # Load configurations from trajectory csv
     traj = np.loadtxt('./results/trajectory.csv',delimiter=',')
@@ -77,7 +77,7 @@ def main():
         Xd_next = trajToSE3(traj[i+1])
     
         # Get controls needed for nextState
-        controls, errorIntegral = feedbackControl(X, Xd, Xd_next, robot.Kp, robot.Ki, robot.dt, robot.current_config, robot.errorIntegral)
+        controls, errorIntegral = feedbackControl(X, Xd, Xd_next, robot.Kp, robot.Ki, robot.dt, robot.current_config, robot.errorIntegral, writer2)
         robot.controls = controls
         robot.errorIntegral = errorIntegral
         grip = traj[i,12]
@@ -85,14 +85,16 @@ def main():
         # Get next configuration and add to csv file
         robot.current_config = np.append((nextState(robot.current_config, robot.controls, robot.dt, robot.max_speed)), int(grip))
         writer.writerow(robot.current_config)
-        writer2.writerow(robot.errorIntegral)
 
         # Set next configuration as X for next iteration
         robot.X = endEffectorConfig(robot.current_config, robot.M0e, robot.Tb0, robot.Blist)
 
+    print("Generated configuration csv file.")
+
     f.close()
     f2.close()
     errorPlot(robot.Kp_gain, robot.Ki_gain)
+    print("Done.")
     pass
 
 if __name__ == "__main__":

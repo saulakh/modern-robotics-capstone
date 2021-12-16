@@ -12,7 +12,7 @@ class youBot():
         self.w = 0.15 # side-to-side distance between wheels
 
         # Initial youBot configuration
-        self.initial_config = np.array([0,0,0,0,0,0.2,-1.6,0,0,0,0,0,0]) # (phi,x,y,J1,J2,J3,J4,J5,W1,W2,W3,W4,gripper)
+        self.initial_config = np.array([0,0,0,0,-0.2,0.2,-1.6,0,0,0,0,0,0]) # (phi,x,y,J1,J2,J3,J4,J5,W1,W2,W3,W4,gripper)
         self.Tb0 = np.array([[1,0,0,0.1662],[0,1,0,0],[0,0,1,0.0026],[0,0,0,1]])
         self.M0e = np.array([[1,0,0,0.033],[0,1,0,0],[0,0,1,0.6546],[0,0,0,1]])
         self.Blist = np.array([[0,0,1,0,0.033,0],[0,-1,0,-0.5076,0,0],[0,-1,0,-0.3526,0,0],[0,-1,0,-0.2176,0,0],[0,0,1,0,0,0]]).T
@@ -27,8 +27,8 @@ class youBot():
         self.cube_final = np.array([[0,1,0,0],[-1,0,0,-1],[0,0,1,0.025],[0,0,0,1]])
 
         # Kp and Ki gains
-        self.Kp_gain = 1
-        self.Ki_gain = 0
+        self.Kp_gain = 40
+        self.Ki_gain = 5
         self.Kp = self.Kp_gain * np.identity(6)
         self.Ki = self.Ki_gain * np.identity(6)
 
