@@ -1,5 +1,6 @@
 import modern_robotics as mr
 import numpy as np
+import csv
 from next_state import nextState
 
 def Jacobian(T0e, F, Blist, thetalist):
@@ -74,7 +75,7 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral, wr
 
     X_inv = np.linalg.inv(X)
     Xd_inv = np.linalg.inv(Xd)
-    # Error twist between current and desired state
+    # Error twist between current and reference state
     X_err = mr.se3ToVec(mr.MatrixLog6(X_inv @ Xd))
     writer.writerow(X_err)
     # Error integral is sum of all X_err*dt over time
@@ -102,8 +103,8 @@ def feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, currentConfig, errorIntegral, wr
 
 def main():
     # Test input (phi,x,y,J1,J2,J3,J4,J5)
-    robotConfig = np.array([0,0,0,0,0,0.2,-1.6,0])
-    errorIntegral = np.zeros((1,6))
+    robotConfig = np.array([0,0,0,0,0,0.2,-1.6,0,0,0,0,0,0])
+    errorIntegral = np.zeros(6)
     dt = 0.01
 
     # Given Xd, Xd_next, X, Kp, Ki:
@@ -114,7 +115,10 @@ def main():
     Ki = np.zeros(6)
 
     # Test feedback control
-    output = feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, robotConfig, errorIntegral)
+    f = open('./results/error.csv', 'w', newline='')
+    writer = csv.writer(f)
+    feedbackControl(X, Xd, Xd_next, Kp, Ki, dt, robotConfig, errorIntegral, writer)
+    f.close()
     pass
 
 if __name__ == "__main__":
